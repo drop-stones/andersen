@@ -10,6 +10,12 @@ using namespace llvm;
 ConstraintNode::ConstraintNode(NodeType t, NodeIndex i, const Value &v)
     : type{t}, idx{i}, value{v} {}
 
+NodeIndex
+ConstraintNode::getNodeIndex() const
+{
+    return idx;
+}
+
 void
 ConstraintNode::addPtsToSet(NodeIndex i)
 {
@@ -17,11 +23,45 @@ ConstraintNode::addPtsToSet(NodeIndex i)
 }
 
 void
+ConstraintNode::addAddrEdge(NodeIndex i)
+{
+    addrEdges.insert(i);
+}
+
+void
+ConstraintNode::addCopyEdge(NodeIndex i)
+{
+    copyEdges.insert(i);
+}
+
+void
+ConstraintNode::addLoadEdge(NodeIndex i)
+{
+    loadEdges.insert(i);
+}
+
+void
+ConstraintNode::addStoreEdge(NodeIndex i)
+{
+    storeEdges.insert(i);
+}
+
+void
 ConstraintNode::print() const
 {
-    llvm::outs() << "NodeType: " << type << "\tNodeIndex: " << idx << "\t";
-    value.print(llvm::outs(), true);
-    llvm::outs() << '\n';
+    outs() << "NodeType: " << type << "\tNodeIndex: " << idx << "\t";
+    value.print(outs(), true);
+    outs() << '\n';
+}
+
+void
+ConstraintNode::printPtsToSet() const
+{
+    print();
+    outs() << " points-to:\n";
+    for (const auto &pts : ptsToSet) {
+        outs() << "\t- " << pts << "\n";
+    }
 }
 
 ConstraintGraph::ConstraintGraph() {}
@@ -47,8 +87,7 @@ ConstraintGraph::createObjNode(const Value &v)
 NodeIndex
 ConstraintGraph::createNode(NodeType t, NodeIndex i, const Value &v)
 {
-    ConstraintNode n {t, i, v};
-    nodes.push_back(n);
+    nodes.emplace_back(t, i, v);
     return i;
 }
 
@@ -64,21 +103,22 @@ ConstraintGraph::getObjNodeIndex(const Value &v)
     return objToIndex[&v];
 }
 
-void
-ConstraintGraph::createConstraint(ConstraintType t, NodeIndex lhs, NodeIndex rhs)
+ConstraintNode&
+ConstraintGraph::getConstraintNode(NodeIndex index)
 {
-    if (lhs > nodes.size() || rhs > nodes.size()) {
-        errs() << "Out-of-Range!!\n";
-        exit(1);
-    }
-    Constraint c {t, nodes[lhs], nodes[rhs]};
-    constraints.push_back(c);
+    return nodes[index];
+}
+
+void
+ConstraintGraph::createConstraint(ConstraintType type, NodeIndex lhs, NodeIndex rhs)
+{
+    constraints.emplace_back(type, lhs, rhs);
 }
 
 void
 ConstraintGraph::print() const
 {
-    outs() << "Andersen::print()\n";
+    outs() << "ConstraintGraph::print()\n";
     printNodes();
     printConstraints();
 }
@@ -86,7 +126,7 @@ ConstraintGraph::print() const
 void
 ConstraintGraph::printNodes() const
 {
-    outs() << "Andersen::printNodes()\n";
+    outs() << "ConstraintGraph::printNodes()\n";
     for (const auto n : nodes) {
         n.print();
     }
@@ -95,9 +135,18 @@ ConstraintGraph::printNodes() const
 void
 ConstraintGraph::printConstraints() const
 {
-    outs() << "Andersen::printConstraints()\n";
+    outs() << "ConstraintGraph::printConstraints()\n";
     for (const auto c : constraints) {
         c.print();
+    }
+}
+
+void
+ConstraintGraph::printPtsToSets() const
+{
+    outs() << "ConstraintGraph::printPtsToSets()\n";
+    for (const auto n : nodes) {
+        n.printPtsToSet();
     }
 }
 

@@ -18,13 +18,15 @@ raw_ostream& operator<<(raw_ostream& out, ConstraintType t);
 
 class Constraint {
 public:
-    Constraint(ConstraintType t, ConstraintNode &l, ConstraintNode &r);
+    Constraint(ConstraintType t, NodeIndex l, NodeIndex r);
     ConstraintType getConstraintType() const;
+    NodeIndex getLhsIndex() const;
+    NodeIndex getRhsIndex() const;
     void print() const;
 
 private:
     const ConstraintType type;
-    const ConstraintNode& lhs, rhs;
+    const NodeIndex lhs_index, rhs_index;
 };
 
 } // namespace andr

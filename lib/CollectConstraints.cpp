@@ -67,7 +67,6 @@ Andersen::collectConstraints(const Instruction &ins)
 
             NodeIndex src_index = graph.getValueNodeIndex(*ins.getOperand(0));
             NodeIndex dst_index = graph.getValueNodeIndex(*ins.getOperand(1));
-            outs() << "(src_index, dst_index): (" << src_index << ", " << dst_index << ")\n";
             graph.createConstraint(ConstraintType::STORE, dst_index, src_index);
         }
         break;

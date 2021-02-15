@@ -20,16 +20,20 @@ public:
     NodeIndex createObjNode(const Value &v);
     NodeIndex getValueNodeIndex(const Value &v);
     NodeIndex getObjNodeIndex(const Value &v);
-    void createConstraint(ConstraintType t, NodeIndex lhs, NodeIndex rhs);
+    ConstraintNode& getConstraintNode(NodeIndex index);
+    void createConstraint(ConstraintType type, NodeIndex lhs, NodeIndex rhs);
+    void addConstraintEdges();
     void solveConstraints();
 
     void print() const;
     void printNodes() const;
     void printConstraints() const;
+    void printPtsToSets() const;
 
 private:
     NodeIndex createNode(NodeType t, NodeIndex i, const Value &v);
-    void solveConstraint(const Constraint &c);
+    void addConstraintEdge(const Constraint &c);
+    void solveConstraint(ConstraintNode &n);
 
     unordered_map<const Value *, NodeIndex> valueToIndex;
     unordered_map<const Value *, NodeIndex> objToIndex;

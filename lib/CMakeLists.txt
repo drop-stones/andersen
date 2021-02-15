@@ -3,6 +3,7 @@ set(AndersenSourceCodes
         ConstraintGraph.cpp
         Constraint.cpp
         CollectConstraints.cpp
+        SolveConstraints.cpp
         Types.cpp
 )
 
