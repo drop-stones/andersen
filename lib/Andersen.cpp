@@ -16,7 +16,6 @@ bool Andersen::runOnModule(const Module &module)
     collectConstraints(module);
     graph.print();
 
-    graph.addConstraintEdges();
     graph.solveConstraints();
     graph.printPtsToSets();
 

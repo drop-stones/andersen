@@ -19,3 +19,6 @@ add_subdirectory(lib)
 
 add_executable(main_app main.cpp)
 target_link_libraries(main_app PUBLIC Andersen ${LLVM_LIBS})
+# compile options
+target_compile_options(main_app PUBLIC -fsanitize=address)
+target_link_options(main_app PUBLIC -fsanitize=address)

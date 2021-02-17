@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ConstraintGraph.hpp"
-#include "Constraint.hpp"
 
 #include <llvm/IR/Module.h>
 #include <map>

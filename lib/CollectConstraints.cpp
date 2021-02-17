@@ -1,5 +1,4 @@
 #include "Andersen.hpp"
-#include "Constraint.hpp"
 #include "ConstraintGraph.hpp"
 
 #include <llvm/Support/raw_ostream.h>
@@ -23,7 +22,7 @@ Andersen::collectConstraints(const Function &func)
     for (const auto &bb : func) {
         for (const auto &ins : bb) {
             if (ins.getType()->isPointerTy()) {
-                graph.createValueNode(ins);
+                graph.createValueNode(&ins);
             }
         }
     }
@@ -42,9 +41,10 @@ Andersen::collectConstraints(const Instruction &ins)
     case Instruction::Alloca: {
         outs() << "Alloca\n";
 
-        NodeIndex value_index = graph.getValueNodeIndex(ins);
-        NodeIndex obj_index = graph.createObjNode(ins);
-        graph.createConstraint(ConstraintType::ADDR_OF, value_index, obj_index);
+        NodeID value_id = graph.getValueNodeID(&ins);
+        NodeID obj_id = graph.createObjNode(&ins);
+        //graph.createConstraint(ConstraintType::ADDR_OF, value_id, obj_id);
+        graph.addConstraintEdge(ConstraintEdgeType::ADDR_OF, obj_id, value_id);
         break;
     }
     case Instruction::Load: {
@@ -53,9 +53,10 @@ Andersen::collectConstraints(const Instruction &ins)
             ins.print(outs());
             outs() << '\n';
 
-            NodeIndex src_index = graph.getValueNodeIndex(*ins.getOperand(0));
-            NodeIndex value_index = graph.getValueNodeIndex(ins);
-            graph.createConstraint(ConstraintType::LOAD, value_index, src_index);
+            NodeID src_id = graph.getValueNodeID(ins.getOperand(0));
+            NodeID value_id = graph.getValueNodeID(&ins);
+            //graph.createConstraint(ConstraintType::LOAD, value_id, src_id);
+            graph.addConstraintEdge(ConstraintEdgeType::LOAD, src_id, value_id);
         }
         break;
     }
@@ -65,9 +66,10 @@ Andersen::collectConstraints(const Instruction &ins)
             ins.print(outs());
             outs() << '\n';
 
-            NodeIndex src_index = graph.getValueNodeIndex(*ins.getOperand(0));
-            NodeIndex dst_index = graph.getValueNodeIndex(*ins.getOperand(1));
-            graph.createConstraint(ConstraintType::STORE, dst_index, src_index);
+            NodeID src_id = graph.getValueNodeID(ins.getOperand(0));
+            NodeID dst_id = graph.getValueNodeID(ins.getOperand(1));
+            //graph.createConstraint(ConstraintType::STORE, dst_id, src_id);
+            graph.addConstraintEdge(ConstraintEdgeType::STORE, src_id, dst_id);
         }
         break;
     }

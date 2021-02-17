@@ -7,112 +7,55 @@ namespace andr {
 
 using namespace llvm;
 
-ConstraintNode::ConstraintNode(NodeType t, NodeIndex i, const Value &v)
-    : type{t}, idx{i}, value{v} {}
+ConstraintGraph::ConstraintGraph() : nextEdgeID{0} {}
 
-NodeIndex
-ConstraintNode::getNodeIndex() const
+NodeID
+ConstraintGraph::createValueNode(const Value* v)
 {
-    return idx;
+    NodeID id = createNode(NodeType::VALUE_NODE, nodes.size(), v);
+    valueToID.emplace(make_pair(v, id));
+    return id;
 }
 
-void
-ConstraintNode::addPtsToSet(NodeIndex i)
+NodeID
+ConstraintGraph::createObjNode(const Value* v)
 {
-    ptsToSet.insert(i);
+    NodeID id = createNode(NodeType::OBJ_NODE, nodes.size(), v);
+    objToID.emplace(make_pair(v, id));
+    return id;
 }
 
-void
-ConstraintNode::addAddrEdge(NodeIndex i)
+NodeID
+ConstraintGraph::createNode(NodeType ty, NodeID id, const Value* v)
 {
-    addrEdges.insert(i);
+    nodes.emplace_back(ty, id, v);
+    return id;
 }
 
-void
-ConstraintNode::addCopyEdge(NodeIndex i)
+NodeID
+ConstraintGraph::getValueNodeID(const Value* v)
 {
-    copyEdges.insert(i);
+    return valueToID[v];
 }
 
-void
-ConstraintNode::addLoadEdge(NodeIndex i)
+NodeID
+ConstraintGraph::getObjNodeID(const Value* v)
 {
-    loadEdges.insert(i);
-}
-
-void
-ConstraintNode::addStoreEdge(NodeIndex i)
-{
-    storeEdges.insert(i);
-}
-
-void
-ConstraintNode::print() const
-{
-    outs() << "NodeType: " << type << "\tNodeIndex: " << idx << "\t";
-    value.print(outs(), true);
-    outs() << '\n';
-}
-
-void
-ConstraintNode::printPtsToSet() const
-{
-    print();
-    outs() << " points-to:\n";
-    for (const auto &pts : ptsToSet) {
-        outs() << "\t- " << pts << "\n";
-    }
-}
-
-ConstraintGraph::ConstraintGraph() {}
-
-NodeIndex
-ConstraintGraph::createValueNode(const Value &v)
-{
-    //return createNode(NodeType::VALUE_NODE, nodes.size(), v);
-    NodeIndex idx = createNode(NodeType::VALUE_NODE, nodes.size(), v);
-    valueToIndex.emplace(make_pair(&v, idx));
-    return idx;
-}
-
-NodeIndex
-ConstraintGraph::createObjNode(const Value &v)
-{
-    //return createNode(NodeType::OBJ_NODE, nodes.size(), v);
-    NodeIndex idx = createNode(NodeType::OBJ_NODE, nodes.size(), v);
-    objToIndex.emplace(make_pair(&v, idx));
-    return idx;
-}
-
-NodeIndex
-ConstraintGraph::createNode(NodeType t, NodeIndex i, const Value &v)
-{
-    nodes.emplace_back(t, i, v);
-    return i;
-}
-
-NodeIndex
-ConstraintGraph::getValueNodeIndex(const Value &v)
-{
-    return valueToIndex[&v];
-}
-
-NodeIndex
-ConstraintGraph::getObjNodeIndex(const Value &v)
-{
-    return objToIndex[&v];
+    return objToID[v];
 }
 
 ConstraintNode&
-ConstraintGraph::getConstraintNode(NodeIndex index)
+ConstraintGraph::getConstraintNode(NodeID id)
 {
-    return nodes[index];
+    return nodes[id];
 }
 
-void
-ConstraintGraph::createConstraint(ConstraintType type, NodeIndex lhs, NodeIndex rhs)
+EdgeID
+ConstraintGraph::addConstraintEdge(ConstraintEdgeType type, NodeID src, NodeID dst)
 {
-    constraints.emplace_back(type, lhs, rhs);
+    getConstraintNode(src).addConstraintEdge(type, dst, nextEdgeID);
+    nextEdgeID++;
+    return nextEdgeID;
 }
 
 void
@@ -120,7 +63,7 @@ ConstraintGraph::print() const
 {
     outs() << "ConstraintGraph::print()\n";
     printNodes();
-    printConstraints();
+    //printConstraints();
 }
 
 void
@@ -129,15 +72,6 @@ ConstraintGraph::printNodes() const
     outs() << "ConstraintGraph::printNodes()\n";
     for (const auto n : nodes) {
         n.print();
-    }
-}
-
-void
-ConstraintGraph::printConstraints() const
-{
-    outs() << "ConstraintGraph::printConstraints()\n";
-    for (const auto c : constraints) {
-        c.print();
     }
 }
 

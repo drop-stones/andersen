@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Constraint.hpp"
-#include "ConstraintGraphNode.hpp"
+#include "ConstraintNode.hpp"
+#include "ConstraintEdge.hpp"
 
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
@@ -16,30 +16,27 @@ using namespace llvm;
 class ConstraintGraph {
 public:
     ConstraintGraph();
-    NodeIndex createValueNode(const Value &v);
-    NodeIndex createObjNode(const Value &v);
-    NodeIndex getValueNodeIndex(const Value &v);
-    NodeIndex getObjNodeIndex(const Value &v);
-    ConstraintNode& getConstraintNode(NodeIndex index);
-    void createConstraint(ConstraintType type, NodeIndex lhs, NodeIndex rhs);
-    void addConstraintEdges();
+    NodeID createValueNode(const Value* v);
+    NodeID createObjNode(const Value* v);
+    NodeID getValueNodeID(const Value* v);
+    NodeID getObjNodeID(const Value* v);
+    ConstraintNode& getConstraintNode(NodeID id);
+    EdgeID addConstraintEdge(ConstraintEdgeType type, NodeID src, NodeID dst);
     void solveConstraints();
 
     void print() const;
     void printNodes() const;
-    void printConstraints() const;
     void printPtsToSets() const;
 
 private:
-    NodeIndex createNode(NodeType t, NodeIndex i, const Value &v);
-    void addConstraintEdge(const Constraint &c);
+    NodeID createNode(NodeType ty, NodeID id, const Value* v);
     void solveConstraint(ConstraintNode &n);
 
-    unordered_map<const Value *, NodeIndex> valueToIndex;
-    unordered_map<const Value *, NodeIndex> objToIndex;
+    unordered_map<const Value *, NodeID> valueToID;
+    unordered_map<const Value *, NodeID> objToID;
 
     vector<ConstraintNode> nodes;
-    vector<Constraint> constraints;
+    EdgeID nextEdgeID;
 };
 
 } // namespace andr
