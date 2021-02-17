@@ -50,37 +50,51 @@ ConstraintGraph::getConstraintNode(NodeID id)
     return nodes[id];
 }
 
-EdgeID
+bool
 ConstraintGraph::addConstraintEdge(ConstraintEdgeType type, NodeID src, NodeID dst)
 {
-    getConstraintNode(src).addConstraintEdge(type, dst, nextEdgeID);
-    nextEdgeID++;
-    return nextEdgeID;
-}
-
-void
-ConstraintGraph::print() const
-{
-    outs() << "ConstraintGraph::print()\n";
-    printNodes();
-    //printConstraints();
-}
-
-void
-ConstraintGraph::printNodes() const
-{
-    outs() << "ConstraintGraph::printNodes()\n";
-    for (const auto n : nodes) {
-        n.print();
+    bool isNew = getConstraintNode(src).addConstraintEdge(type, dst, nextEdgeID);
+    if (isNew) {
+        nextEdgeID++;
+        return true;
+    } else {
+        return false;
     }
 }
 
 void
-ConstraintGraph::printPtsToSets() const
+ConstraintGraph::print(raw_ostream &out) const
+{
+    outs() << "ConstraintGraph::print()\n";
+    printNodes(out);
+    printPtsToSets(out);
+}
+
+void
+ConstraintGraph::printNodes(raw_ostream &out) const
+{
+    outs() << "ConstraintGraph::printNodes()\n";
+    for (const auto &n : nodes) {
+        n.print(out);
+        out << '\n';
+    }
+}
+
+void
+ConstraintGraph::printPtsToSets(raw_ostream &out) const
 {
     outs() << "ConstraintGraph::printPtsToSets()\n";
-    for (const auto n : nodes) {
-        n.printPtsToSet();
+    for (const auto &n : nodes) {
+        if (n.pts_begin() == n.pts_end()) {
+            continue;
+        }
+        n.print(out);
+        out << '\n';
+        for (const auto &pts : n.pts_sets()) {
+            out << "\tpoints-to -> ";
+            nodes[pts].print(out);
+            out << '\n';
+        }
     }
 }
 

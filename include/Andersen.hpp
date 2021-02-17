@@ -2,6 +2,7 @@
 
 #include "ConstraintGraph.hpp"
 
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <map>
 
@@ -14,9 +15,10 @@ public:
     bool runOnModule(const llvm::Module &module);
 
 private:
-    void collectConstraints(const llvm::Module &module);
-    void collectConstraints(const llvm::Function &func);
-    void collectConstraints(const llvm::Instruction &ins);
+    void collectConstraints(const llvm::Module& module);
+    void collectConstraints(const llvm::Function& func);
+    void collectConstraints(const llvm::Instruction& ins);
+    void collectConstraintsForCall(const llvm::CallInst* cs);
 
     ConstraintGraph graph;
 };

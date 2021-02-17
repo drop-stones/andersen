@@ -24,21 +24,28 @@ class ConstraintNode {
 public:
     ConstraintNode(NodeType ty, NodeID id, const Value* v);
     NodeID getNodeID() const;
-    void addPtsToSet (NodeID id);
-    void addConstraintEdge(ConstraintEdgeType type, NodeID dst, EdgeID id);
+    bool addPtsToSet (NodeID id);
+    bool addConstraintEdge(ConstraintEdgeType type, NodeID dst, EdgeID id);
 
-    void print() const;
-    void printPtsToSet() const;
+    void print(raw_ostream& out) const;
+
+    inline bool operator< (const ConstraintNode& n) const {
+        return (this->nodeID < n.getNodeID() ? true : false);
+    }
 
     using edge_iterator = EdgeSet::iterator;
     using const_edge_iterator = EdgeSet::const_iterator;
     using node_iterator = NodeSet::iterator;
     using const_node_iterator = NodeSet::const_iterator;
 
-    //inline iterator begin() { return ptsToSet.begin(); }
-    //inline iterator end() { return ptsToSet.end(); }
-    inline const_node_iterator begin() const { return ptsToSet.begin(); }
-    inline const_node_iterator end() const { return ptsToSet.end(); }
+    //inline const_edge_iterator begin() const { return addr_begin(); }
+    //inline const_edge_iterator end() const { return variant_gep_end(); }
+    
+    inline const_node_iterator pts_begin() const { return ptsToSet.begin(); }
+    inline const_node_iterator pts_end() const { return ptsToSet.end(); }
+    inline llvm::iterator_range<const_node_iterator> pts_sets() const {
+        return llvm::iterator_range<const_node_iterator>(pts_begin(), pts_end());
+    }
     //inline iterator addr_begin() { return addrEdges.begin(); }
     //inline iterator addr_end() { return addrEdges.end(); }
     inline const_edge_iterator addr_begin() const { return addrEdges.begin(); }
@@ -63,14 +70,24 @@ public:
     inline llvm::iterator_range<const_edge_iterator> stores() const {
         return llvm::iterator_range<const_edge_iterator>(store_begin(), store_end());
     }
+    inline const_edge_iterator constant_gep_begin() const { return constantGepEdges.begin(); }
+    inline const_edge_iterator constant_gep_end() const { return constantGepEdges.end(); }
+    inline llvm::iterator_range<const_edge_iterator> constant_geps() const {
+        return llvm::iterator_range<const_edge_iterator>(constant_gep_begin(), constant_gep_end());
+    }
+    inline const_edge_iterator variant_gep_begin() const { return variantGepEdges.begin(); }
+    inline const_edge_iterator variant_gep_end() const { return variantGepEdges.end(); }
+    inline llvm::iterator_range<const_edge_iterator> variant_geps() const {
+        return llvm::iterator_range<const_edge_iterator>(variant_gep_begin(), variant_gep_end());
+    }
 
 private:
-    void addAddrEdge       (NodeID dst, EdgeID id);
-    void addCopyEdge       (NodeID dst, EdgeID id);
-    void addLoadEdge       (NodeID dst, EdgeID id);
-    void addStoreEdge      (NodeID dst, EdgeID id);
-    void addConstantGepEdge(NodeID dst, EdgeID id);
-    void addVariantGepEdge (NodeID dst, EdgeID id);
+    bool addAddrEdge       (NodeID dst, EdgeID id);
+    bool addCopyEdge       (NodeID dst, EdgeID id);
+    bool addLoadEdge       (NodeID dst, EdgeID id);
+    bool addStoreEdge      (NodeID dst, EdgeID id);
+    bool addConstantGepEdge(NodeID dst, EdgeID id);
+    bool addVariantGepEdge (NodeID dst, EdgeID id);
 
 
     const NodeID nodeID;

@@ -14,10 +14,10 @@ bool Andersen::runOnModule(const Module &module)
     llvm::outs() << "Andersen::runOnModule\n";
 
     collectConstraints(module);
-    graph.print();
+    graph.print(outs());
 
     graph.solveConstraints();
-    graph.printPtsToSets();
+    graph.printPtsToSets(outs());
 
     return false;
 }

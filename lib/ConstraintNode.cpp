@@ -15,80 +15,75 @@ ConstraintNode::getNodeID() const
     return nodeID;
 }
 
-void
+bool
 ConstraintNode::addPtsToSet(NodeID i)
 {
-    ptsToSet.insert(i);
+    const auto isNew = ptsToSet.insert(i);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addConstraintEdge(ConstraintEdgeType type, NodeID dst, EdgeID id)
 {
     switch(type) {
-    case ConstraintEdgeType::ADDR_OF:       addAddrEdge(dst, id);           break;
-    case ConstraintEdgeType::COPY:          addCopyEdge(dst, id);           break;
-    case ConstraintEdgeType::LOAD:          addLoadEdge(dst, id);           break;
-    case ConstraintEdgeType::STORE:         addStoreEdge(dst, id);          break;
-    case ConstraintEdgeType::CONSTANT_GEP:  addConstantGepEdge(dst, id);    break;
-    case ConstraintEdgeType::VARIANT_GEP:   addVariantGepEdge(dst, id);     break;
-    default:                                outs() << "Invalid Type";       break;
+    case ConstraintEdgeType::ADDR_OF:       return addAddrEdge(dst, id); 
+    case ConstraintEdgeType::COPY:          return addCopyEdge(dst, id); 
+    case ConstraintEdgeType::LOAD:          return addLoadEdge(dst, id); 
+    case ConstraintEdgeType::STORE:         return addStoreEdge(dst, id);
+    case ConstraintEdgeType::CONSTANT_GEP:  return addConstantGepEdge(dst, id);
+    case ConstraintEdgeType::VARIANT_GEP:   return addVariantGepEdge(dst, id); 
+    default:    errs() << "Invalid Type";   return false;
     }
 }
 
-void
+bool
 ConstraintNode::addAddrEdge(NodeID dst, EdgeID id)
 {
-    addrEdges.emplace(ConstraintEdgeType::ADDR_OF, nodeID, dst, id);
+    const auto isNew = addrEdges.emplace(ConstraintEdgeType::ADDR_OF, nodeID, dst, id);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addCopyEdge(NodeID dst, EdgeID id)
 {
-    copyEdges.emplace(ConstraintEdgeType::COPY, nodeID, dst, id);
+    const auto isNew = copyEdges.emplace(ConstraintEdgeType::COPY, nodeID, dst, id);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addLoadEdge(NodeID dst, EdgeID id)
 {
-    loadEdges.emplace(ConstraintEdgeType::LOAD, nodeID, dst, id);
+    const auto isNew = loadEdges.emplace(ConstraintEdgeType::LOAD, nodeID, dst, id);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addStoreEdge(NodeID dst, EdgeID id)
 {
-    storeEdges.emplace(ConstraintEdgeType::STORE, nodeID, dst, id);
+    const auto isNew = storeEdges.emplace(ConstraintEdgeType::STORE, nodeID, dst, id);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addConstantGepEdge(NodeID dst, EdgeID id)
 {
-    constantGepEdges.emplace(ConstraintEdgeType::CONSTANT_GEP, nodeID, dst, id);
+    const auto isNew = constantGepEdges.emplace(ConstraintEdgeType::CONSTANT_GEP, nodeID, dst, id);
+    return isNew.second;
 }
 
-void
+bool
 ConstraintNode::addVariantGepEdge(NodeID dst, EdgeID id)
 {
-    variantGepEdges.emplace(ConstraintEdgeType::VARIANT_GEP, nodeID, dst, id);
+    const auto isNew = variantGepEdges.emplace(ConstraintEdgeType::VARIANT_GEP, nodeID, dst, id);
+    return isNew.second;
 }
 
 
 void
-ConstraintNode::print() const
+ConstraintNode::print(raw_ostream& out) const
 {
-    outs() << "NodeType: " << type << "\tNodeID: " << nodeID << "\t";
-    value->print(outs(), true);
-    outs() << '\n';
+    value->print(out, true);
+    out << "\t|\t" << "NodeType: " << type << "\tID: " << nodeID;
 }
-
-void
-ConstraintNode::printPtsToSet() const
-{
-    print();
-    outs() << " points-to:\n";
-    for (const auto &pts : ptsToSet) {
-        outs() << "\t- " << pts << "\n";
-    }
-}
-
 
 } // namespace andr

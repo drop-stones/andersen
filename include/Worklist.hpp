@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <set>
 #include <deque>
+#include <iostream>
 
 // Worklist with "first in first out" order.
 // New nodes pushed at back and popped from front.
@@ -16,6 +17,7 @@ public:
     inline unsigned int size() const;
     inline bool empty() const;
     inline void clear();
+    inline void print(std::ostream &) const;
 
 private:
     using DataSet = std::set<Data>;
@@ -93,4 +95,15 @@ Worklist<Data>::clear()
 {
     list.clear();
     set.clear();
+}
+
+template <typename Data>
+void
+Worklist<Data>::print(std::ostream &out) const
+{
+    out << "{";
+    for (const auto &l : list) {
+        out << l << " ";
+    }
+    out << "}\n";
 }

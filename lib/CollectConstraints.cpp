@@ -41,10 +41,9 @@ Andersen::collectConstraints(const Instruction &ins)
     case Instruction::Alloca: {
         outs() << "Alloca\n";
 
-        NodeID value_id = graph.getValueNodeID(&ins);
-        NodeID obj_id = graph.createObjNode(&ins);
-        //graph.createConstraint(ConstraintType::ADDR_OF, value_id, obj_id);
-        graph.addConstraintEdge(ConstraintEdgeType::ADDR_OF, obj_id, value_id);
+        NodeID valueID = graph.getValueNodeID(&ins);
+        NodeID objID = graph.createObjNode(&ins);
+        graph.addConstraintEdge(ConstraintEdgeType::ADDR_OF, objID, valueID);
         break;
     }
     case Instruction::Load: {
@@ -53,10 +52,9 @@ Andersen::collectConstraints(const Instruction &ins)
             ins.print(outs());
             outs() << '\n';
 
-            NodeID src_id = graph.getValueNodeID(ins.getOperand(0));
-            NodeID value_id = graph.getValueNodeID(&ins);
-            //graph.createConstraint(ConstraintType::LOAD, value_id, src_id);
-            graph.addConstraintEdge(ConstraintEdgeType::LOAD, src_id, value_id);
+            NodeID srcID = graph.getValueNodeID(ins.getOperand(0));
+            NodeID valueID = graph.getValueNodeID(&ins);
+            graph.addConstraintEdge(ConstraintEdgeType::LOAD, srcID, valueID);
         }
         break;
     }
@@ -66,25 +64,58 @@ Andersen::collectConstraints(const Instruction &ins)
             ins.print(outs());
             outs() << '\n';
 
-            NodeID src_id = graph.getValueNodeID(ins.getOperand(0));
-            NodeID dst_id = graph.getValueNodeID(ins.getOperand(1));
-            //graph.createConstraint(ConstraintType::STORE, dst_id, src_id);
-            graph.addConstraintEdge(ConstraintEdgeType::STORE, src_id, dst_id);
+            NodeID srcID = graph.getValueNodeID(ins.getOperand(0));
+            NodeID dstID = graph.getValueNodeID(ins.getOperand(1));
+            graph.addConstraintEdge(ConstraintEdgeType::STORE, srcID, dstID);
         }
         break;
     }
     case Instruction::Call:
+    case Instruction::Invoke: {
         outs() << "Call\n";
+        if (const auto *cs = dyn_cast<const CallInst>(&ins)) {
+            collectConstraintsForCall(cs);
+        }
         break;
+    }
     case Instruction::Ret:
         outs() << "Ret\n";
         break;
-    case Instruction::GetElementPtr:
+    case Instruction::GetElementPtr: {
         outs() << "GetElementPtr\n";
+
+        NodeID compositeDataID = graph.getValueNodeID(ins.getOperand(0));
+        NodeID fieldID = graph.getValueNodeID(&ins);
+        graph.addConstraintEdge(ConstraintEdgeType::VARIANT_GEP, compositeDataID, fieldID);
         break;
+    }
     default:
         outs() << "default\n";
         break;
+    }
+}
+
+void
+Andersen::collectConstraintsForCall(const CallInst* call)
+{
+    if (const Function* f = call->getCalledFunction()) {
+        /// Direct call
+        // TODO: handle external library functions
+
+        if (f->getReturnType()->isPointerTy()) {
+            NodeID retValID = graph.getValueNodeID(call);
+
+            for (const auto &bb : *f) {
+                for (const auto &ins : bb) {
+                    if (const auto *ret = dyn_cast<const ReturnInst>(&ins)) {
+                        NodeID funcRetID = graph.getValueNodeID(ret->getReturnValue());
+                        graph.addConstraintEdge(ConstraintEdgeType::COPY, funcRetID, retValID);
+                    }
+                }
+            }
+        }
+    } else {
+        /// Indirect call
     }
 }
 

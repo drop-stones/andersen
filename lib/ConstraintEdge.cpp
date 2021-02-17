@@ -9,6 +9,12 @@ using namespace llvm;
 ConstraintEdge::ConstraintEdge(ConstraintEdgeType ty, NodeID src, NodeID dst, EdgeID id)
     : type{ty}, srcID{src}, dstID{dst}, edgeID{id} {}
 
+ConstraintEdgeType
+ConstraintEdge::getConstraintEdgeType() const
+{
+    return type;
+}
+
 NodeID
 ConstraintEdge::getSrcNodeID() const
 {
@@ -28,7 +34,7 @@ ConstraintEdge::getEdgeID() const
 }
 
 void
-ConstraintEdge::print() const
+ConstraintEdge::print(raw_ostream& out) const
 {
     // TODO
 }

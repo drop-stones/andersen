@@ -2,6 +2,7 @@
 
 #include "ConstraintNode.hpp"
 #include "ConstraintEdge.hpp"
+#include "Worklist.hpp"
 
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
@@ -13,6 +14,9 @@ namespace andr {
 using namespace std;
 using namespace llvm;
 
+using ValueToIDMap = unordered_map<const Value *, NodeID>;
+using NodeVector = vector<ConstraintNode>;
+
 class ConstraintGraph {
 public:
     ConstraintGraph();
@@ -21,22 +25,24 @@ public:
     NodeID getValueNodeID(const Value* v);
     NodeID getObjNodeID(const Value* v);
     ConstraintNode& getConstraintNode(NodeID id);
-    EdgeID addConstraintEdge(ConstraintEdgeType type, NodeID src, NodeID dst);
+    bool addConstraintEdge(ConstraintEdgeType type, NodeID src, NodeID dst);
     void solveConstraints();
 
-    void print() const;
-    void printNodes() const;
-    void printPtsToSets() const;
+    void print(raw_ostream& out) const;
+    void printNodes(raw_ostream& out) const;
+    void printPtsToSets(raw_ostream& out) const;
 
 private:
     NodeID createNode(NodeType ty, NodeID id, const Value* v);
     void solveConstraint(ConstraintNode &n);
 
-    unordered_map<const Value *, NodeID> valueToID;
-    unordered_map<const Value *, NodeID> objToID;
+    ValueToIDMap valueToID;
+    ValueToIDMap objToID;
 
-    vector<ConstraintNode> nodes;
+    NodeVector nodes;
     EdgeID nextEdgeID;
+
+    Worklist<NodeID> nodesToBeSolved;
 };
 
 } // namespace andr
